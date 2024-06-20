@@ -1,6 +1,8 @@
 cups
 cups-pdf
 cups-filters
+system-config-printer
+cups-pk-helper
 usbutils
 sane
 sane-airscan
