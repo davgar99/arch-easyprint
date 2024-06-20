@@ -35,11 +35,9 @@ echo -e "${GREEN}Installing required packages...${ENDCOLOR}"
 sudo pacman -S --needed - < packages.txt
 
 echo -e "${GREEN}Enabling services...${ENDCOLOR}"
-echo "Enabling cups.socket"
-echo "Enabling avahi-daemon.service"
-sudo systemctl enable --now cups.socket avahi-daemon.service
+sudo systemctl enable --now cups.service avahi-daemon.service
 
-echo -e "${GREEN}Enabling printer network discovery...${ENDCOLOR}"
+echo -e "${GREEN}Enabling network printer discovery...${ENDCOLOR}"
 
 ORIGINAL_FILE="/etc/nsswitch.conf"
 BACKUP_FILE="/etc/nsswitch.conf.backup"
