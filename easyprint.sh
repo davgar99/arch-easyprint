@@ -15,12 +15,12 @@ while true; do
     read -r -p "Do you want to continue? (Y/N): " response
     case "$response" in
         [Yy])
-            echo -e "${YELLOW}You responded with Y. Continuing...${ENDCOLOR}"
+            echo -e "${YELLOW}You responded with Y. Continuing.${ENDCOLOR}"
             break
             ;;
         [Nn])
-            echo -e "${YELLOW}You responded with N. Exiting...${ENDCOLOR}"
-            exit 0
+            echo -e "${YELLOW}You responded with N. Exiting.${ENDCOLOR}"
+            exit 1
             ;;
         *)
             echo -e "${YELLOW}Invalid response. Please enter Y or N.${ENDCOLOR}"
@@ -28,16 +28,16 @@ while true; do
     esac
 done
 
-echo -e "${GREEN}Updating Pacman package database...${ENDCOLOR}"
+echo -e "${GREEN}Updating Pacman package database.${ENDCOLOR}"
 sudo pacman -Syy
 
-echo -e "${GREEN}Installing required packages...${ENDCOLOR}"
+echo -e "${GREEN}Installing required packages.${ENDCOLOR}"
 sudo pacman -S --needed - < packages.txt
 
-echo -e "${GREEN}Enabling services...${ENDCOLOR}"
+echo -e "${GREEN}Enabling services.${ENDCOLOR}"
 sudo systemctl enable --now cups.service avahi-daemon.service
 
-echo -e "${GREEN}Enabling network printer discovery...${ENDCOLOR}"
+echo -e "${GREEN}Enabling network printer discovery.${ENDCOLOR}"
 
 ORIGINAL_FILE="/etc/nsswitch.conf"
 BACKUP_FILE="/etc/nsswitch.conf.backup"
