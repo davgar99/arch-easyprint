@@ -1,11 +1,5 @@
 cups
 cups-pdf
-cups-filters
-system-config-printer
-cups-pk-helper
-usbutils
-sane
-sane-airscan
 ipp-usb
 gutenprint
 ghostscript
@@ -13,8 +7,7 @@ gsfonts
 foomatic-db-gutenprint-ppds
 foomatic-db-engine
 foomatic-db
-foomatic-db-ppds
 foomatic-db-nonfree
-foomatic-db-nonfree-ppds
 avahi
 nss-mdns
+sane-airscan
