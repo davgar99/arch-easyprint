@@ -56,8 +56,7 @@ sudo cups-genppdupdate
 printf '%s\n' "${GREEN}Enabling services.${ENDCOLOR}"
 # Use socket-based activation for CUPS to avoid slow boot times.
 # cups.socket starts CUPS on demand; cups.service is not enabled at boot.
-sudo systemctl enable cups.socket avahi-daemon.service ipp-usb.service
-sudo systemctl start cups.service
+sudo systemctl enable --now cups.socket avahi-daemon.service ipp-usb.service
 
 # Warn if systemd-resolved mDNS is active, as it conflicts with Avahi
 if systemctl is-active --quiet systemd-resolved; then
@@ -143,6 +142,6 @@ cat << EOF
 Script finished successfully!
 Please be sure to add your printer through the CUPS web interface at http://localhost:631/
 or using your desktop environment's printer settings.
-NOTE: Do not enable cups-browsed.service — it is not needed for DNS-SD/mDNS printer discovery and will significantly slow down your boot time.
+NOTE: Do not enable cups-browsed.service because it's not needed for DNS-SD/mDNS printer discovery and it will significantly slow down your boot time.
 If your printer or scanner is not detected, try logging out and logging back in or restarting your computer and trying again.
 EOF
