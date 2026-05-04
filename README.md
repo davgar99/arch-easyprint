@@ -6,7 +6,7 @@ Arch EasyPrint is a script that makes printer and scanner detection on Arch Linu
 
 - Installs all required packages for printing and scanning (CUPS, Gutenprint, IPP-USB, SANE AirScan, Avahi, and more)
 - Detects your desktop environment and installs the appropriate GUI tools (GNOME or KDE)
-- Enables CUPS with socket-based activation (starts on demand, no boot slowdown)
+- Enables CUPS service
 - Enables Avahi and IPP-USB for automatic network and USB device discovery
 - Configures `/etc/nsswitch.conf` for mDNS-based network printer and scanner discovery
 - Detects and configures your firewall (UFW, firewalld, or iptables) to open the required ports
@@ -39,11 +39,11 @@ chmod +x easyprint.sh
 ./easyprint.sh
 ```
 
-After the script finishes, add your printer through the CUPS web interface at `http://localhost:631/` or through your desktop environment's printer settings.
+After the script finishes, add your printer through the CUPS web interface at `http://localhost:631/` or through your desktop environment's printer manager.
 
 ## Notes
 
-- Do **not** enable `cups-browsed.service`. It is not needed for DNS-SD/mDNS printer discovery and will significantly slow down boot time.
+- Do **NOT** enable `cups-browsed.service`. It is not needed for DNS-SD/mDNS printer discovery and will significantly slow down boot time.
 - If your printer or scanner is not detected after running the script, try logging out and back in or restarting your computer.
 - If you use `systemd-resolved` with mDNS enabled, it may conflict with Avahi. Disable it by setting `MulticastDNS=no` in `/etc/systemd/resolved.conf`.
 
