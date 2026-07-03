@@ -11,14 +11,9 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 PACKAGE_FILE="$SCRIPT_DIR/packages.txt"
 ORIGINAL_FILE="/etc/nsswitch.conf"
 
-if (( EUID == 0 )); then
-    SUDO=()
-else
-    if ! command -v sudo >/dev/null 2>&1; then
-        printf '%s\n' "${RED}ERROR: sudo is required when this script is not run as root.${ENDCOLOR}"
-        exit 1
-    fi
-    SUDO=(sudo)
+if ! command -v sudo >/dev/null 2>&1; then
+    printf '%s\n' "${RED}ERROR: sudo is required to run this script.${ENDCOLOR}"
+    exit 1
 fi
 
 cat << EOF
@@ -55,7 +50,7 @@ if [[ ! -f "$PACKAGE_FILE" ]]; then
 fi
 
 # Validate sudo privileges early so failures happen before package changes begin.
-"${SUDO[@]}" true
+sudo true
 
 mapfile -t REQUIRED_PACKAGES < <(grep -Ev '^[[:space:]]*(#|$)' "$PACKAGE_FILE")
 
@@ -66,7 +61,7 @@ fi
 
 printf '%s\n' "${GREEN}Synchronizing packages and installing required printing/scanning support.${ENDCOLOR}"
 # Use -Syu instead of a database-only refresh to avoid unsupported partial-upgrade states on Arch-based systems.
-"${SUDO[@]}" pacman -Syu --needed "${REQUIRED_PACKAGES[@]}"
+sudo pacman -Syu --needed "${REQUIRED_PACKAGES[@]}"
 
 printf '%s\n' "${GREEN}Detecting desktop environment.${ENDCOLOR}"
 DE="${XDG_CURRENT_DESKTOP:-}"
@@ -74,10 +69,10 @@ DE="${DE,,}"
 
 if [[ "$DE" == *gnome* ]]; then
     printf '%s\n' "${GREEN}GNOME detected. Installing GNOME printing and scanning apps.${ENDCOLOR}"
-    "${SUDO[@]}" pacman -S --needed simple-scan system-config-printer cups-pk-helper
+    sudo pacman -S --needed simple-scan system-config-printer cups-pk-helper
 elif [[ "$DE" == *kde* || "$DE" == *plasma* ]]; then
     printf '%s\n' "${GREEN}KDE Plasma detected. Installing KDE printing and scanning apps.${ENDCOLOR}"
-    "${SUDO[@]}" pacman -S --needed skanlite print-manager
+    sudo pacman -S --needed skanlite print-manager
 else
     printf '%s\n' "${YELLOW}Desktop environment not detected or not supported (${DE:-unknown}).${ENDCOLOR}"
     printf '%s\n' "${YELLOW}Please install a printer and scanner frontend manually for your desktop environment.${ENDCOLOR}"
@@ -85,7 +80,7 @@ fi
 
 if command -v cups-genppdupdate >/dev/null 2>&1; then
     printf '%s\n' "${GREEN}Updating Gutenprint PPD files.${ENDCOLOR}"
-    "${SUDO[@]}" cups-genppdupdate
+    sudo cups-genppdupdate
 else
     printf '%s\n' "${YELLOW}cups-genppdupdate was not found. Skipping Gutenprint PPD refresh.${ENDCOLOR}"
 fi
@@ -93,7 +88,7 @@ fi
 printf '%s\n' "${GREEN}Enabling services.${ENDCOLOR}"
 # Use socket-based activation for CUPS to avoid slow boot times.
 # cups.socket starts CUPS on demand; cups.service is not enabled at boot.
-"${SUDO[@]}" systemctl enable --now cups.socket avahi-daemon.service ipp-usb.service
+sudo systemctl enable --now cups.socket avahi-daemon.service ipp-usb.service
 
 # Warn if systemd-resolved mDNS is active, as it can conflict with Avahi.
 if systemctl is-active --quiet systemd-resolved; then
@@ -115,7 +110,7 @@ fi
 
 BACKUP_FILE="${ORIGINAL_FILE}.arch-easyprint.$(date +%Y%m%d%H%M%S).bak"
 printf '%s\n' "${GREEN}Creating a backup of $ORIGINAL_FILE at $BACKUP_FILE.${ENDCOLOR}"
-"${SUDO[@]}" cp -p "$ORIGINAL_FILE" "$BACKUP_FILE"
+sudo cp -p "$ORIGINAL_FILE" "$BACKUP_FILE"
 
 CURRENT_HOSTS_LINE=$(grep -m1 '^hosts:' "$ORIGINAL_FILE" || true)
 
@@ -139,7 +134,7 @@ if [[ "$NEW_HOSTS_LINE" != "$CURRENT_HOSTS_LINE" ]]; then
         { print }
         END { if (replaced == 0) print new_hosts_line }
     ' "$ORIGINAL_FILE" > "$TEMP_FILE"
-    "${SUDO[@]}" cp "$TEMP_FILE" "$ORIGINAL_FILE"
+    sudo cp "$TEMP_FILE" "$ORIGINAL_FILE"
     rm -f "$TEMP_FILE"
 fi
 
@@ -152,23 +147,23 @@ else
 fi
 
 printf '%s\n' "${GREEN}Restarting CUPS to apply network discovery settings.${ENDCOLOR}"
-"${SUDO[@]}" systemctl restart cups.service
+sudo systemctl restart cups.service
 
 printf '%s\n' "${GREEN}Configuring firewall rules.${ENDCOLOR}"
 if systemctl is-active --quiet ufw; then
     printf '%s\n' "${GREEN}UFW detected. Opening required ports.${ENDCOLOR}"
     # UDP 5353 - mDNS for network printer and scanner discovery.
-    "${SUDO[@]}" ufw allow 5353/udp
+    sudo ufw allow 5353/udp
     # TCP 6566 - saned for network scanner sharing.
-    "${SUDO[@]}" ufw allow 6566/tcp
-    "${SUDO[@]}" ufw reload
+    sudo ufw allow 6566/tcp
+    sudo ufw reload
 elif systemctl is-active --quiet firewalld; then
     printf '%s\n' "${GREEN}firewalld detected. Opening required ports.${ENDCOLOR}"
     # UDP 5353 - mDNS for network printer and scanner discovery.
-    "${SUDO[@]}" firewall-cmd --permanent --add-port=5353/udp
+    sudo firewall-cmd --permanent --add-port=5353/udp
     # TCP 6566 - saned for network scanner sharing.
-    "${SUDO[@]}" firewall-cmd --permanent --add-port=6566/tcp
-    "${SUDO[@]}" firewall-cmd --reload
+    sudo firewall-cmd --permanent --add-port=6566/tcp
+    sudo firewall-cmd --reload
 elif systemctl is-active --quiet iptables; then
     printf '%s\n' "${YELLOW}iptables detected. Please open the following ports manually:${ENDCOLOR}"
     printf '%s\n' "${YELLOW}  UDP 5353 - mDNS (network printer and scanner discovery)${ENDCOLOR}"
