@@ -6,7 +6,7 @@ The goal is to reduce the amount of manual setup needed to get printers and scan
 
 ## What it does
 
-- Installs required packages for printing and scanning, including CUPS, Gutenprint, IPP-USB, SANE AirScan, Avahi, and nss-mdns
+- Installs required packages for printing and scanning, including CUPS, IPP-USB, SANE AirScan, Avahi, and nss-mdns
 - Runs a normal `pacman -Syu --needed` transaction instead of only refreshing package databases
 - Detects GNOME or KDE Plasma and installs the appropriate GUI tools
 - Enables `cups.socket` for socket-based CUPS activation
@@ -23,13 +23,6 @@ The goal is to reduce the amount of manual setup needed to get printers and scan
 | `cups` | Core printing system |
 | `cups-pdf` | Virtual PDF printer |
 | `ipp-usb` | Driverless USB printing and scanning via IPP |
-| `gutenprint` | Printer drivers |
-| `ghostscript` | PostScript and PDF rendering |
-| `gsfonts` | Fonts for Ghostscript |
-| `foomatic-db-gutenprint-ppds` | Gutenprint PPD files |
-| `foomatic-db-engine` | Foomatic filter engine |
-| `foomatic-db` | Open-source printer driver database |
-| `foomatic-db-nonfree` | Non-free printer driver database |
 | `avahi` | mDNS/DNS-SD for network device discovery |
 | `nss-mdns` | NSS module for mDNS hostname resolution |
 | `sane-airscan` | Driverless network and USB scanner support |
