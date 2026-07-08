@@ -93,7 +93,7 @@ sudo systemctl enable --now cups.socket avahi-daemon.service ipp-usb.service
 # Warn if systemd-resolved mDNS is active, as it can conflict with Avahi.
 if systemctl is-active --quiet systemd-resolved; then
     RESOLVED_MDNS=$(resolvectl status 2>/dev/null | grep -im1 "MulticastDNS" || true)
-    if [[ "$RESOLVED_MDNS" =~ yes|active|enabled ]]; then
+    if [[ "${RESOLVED_MDNS,,}" =~ yes|active|enabled ]]; then
         printf '%s\n' "${YELLOW}WARNING: systemd-resolved has mDNS enabled, which can conflict with Avahi.${ENDCOLOR}"
         printf '%s\n' "${YELLOW}Network printer and scanner discovery may not work correctly.${ENDCOLOR}"
         printf '%s\n' "${YELLOW}Consider disabling systemd-resolved's mDNS by setting MulticastDNS=no in /etc/systemd/resolved.conf${ENDCOLOR}"

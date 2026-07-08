@@ -1,13 +1,6 @@
 cups
 cups-pdf
 ipp-usb
-gutenprint
-ghostscript
-gsfonts
-foomatic-db-gutenprint-ppds
-foomatic-db-engine
-foomatic-db
-foomatic-db-nonfree
 avahi
 nss-mdns
 sane-airscan
