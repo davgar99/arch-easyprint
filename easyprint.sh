@@ -22,7 +22,7 @@ This script will install the required packages and dependencies to have your pri
 EOF
 
 while true; do
-    read -r -p "Do you want to continue? (Y/N): " response
+    read -r -p "Do you want to continue? (Y/n): " response
     case "$response" in
         [Yy])
             printf '%s\n' "${YELLOW}You responded with Y. Continuing.${ENDCOLOR}"
@@ -45,7 +45,7 @@ fi
 
 if [[ ! -f "$PACKAGE_FILE" ]]; then
     printf '%s\n' "${RED}ERROR: packages.txt was not found at $PACKAGE_FILE.${ENDCOLOR}"
-    printf '%s\n' "${RED}Clone the full repository or run this script from a complete copy of the project.${ENDCOLOR}"
+    printf '%s\n' "${RED}Clone the full repository or run this script with a complete copy of the project.${ENDCOLOR}"
     exit 1
 fi
 
@@ -60,13 +60,14 @@ if (( ${#REQUIRED_PACKAGES[@]} == 0 )); then
 fi
 
 printf '%s\n' "${GREEN}Synchronizing packages and installing required printing/scanning support.${ENDCOLOR}"
-# Use -Syu instead of a database-only refresh to avoid unsupported partial-upgrade states on Arch-based systems.
-sudo pacman -Syu --needed "${REQUIRED_PACKAGES[@]}"
+# Use pacman Sy to avoid partial updates on Arch Linux.
+sudo pacman -Sy --needed "${REQUIRED_PACKAGES[@]}"
 
-printf '%s\n' "${GREEN}Detecting desktop environment.${ENDCOLOR}"
+printf '%s\n' "${YELLOW}Detecting desktop environment.${ENDCOLOR}"
 DE="${XDG_CURRENT_DESKTOP:-}"
 DE="${DE,,}"
 
+# Install printing packages for KDE or GNOME.
 if [[ "$DE" == *gnome* ]]; then
     printf '%s\n' "${GREEN}GNOME detected. Installing GNOME printing and scanning apps.${ENDCOLOR}"
     sudo pacman -S --needed simple-scan system-config-printer cups-pk-helper
@@ -78,16 +79,8 @@ else
     printf '%s\n' "${YELLOW}Please install a printer and scanner frontend manually for your desktop environment.${ENDCOLOR}"
 fi
 
-if command -v cups-genppdupdate >/dev/null 2>&1; then
-    printf '%s\n' "${GREEN}Updating Gutenprint PPD files.${ENDCOLOR}"
-    sudo cups-genppdupdate
-else
-    printf '%s\n' "${YELLOW}cups-genppdupdate was not found. Skipping Gutenprint PPD refresh.${ENDCOLOR}"
-fi
-
 printf '%s\n' "${GREEN}Enabling services.${ENDCOLOR}"
 # Use socket-based activation for CUPS to avoid slow boot times.
-# cups.socket starts CUPS on demand; cups.service is not enabled at boot.
 sudo systemctl enable --now cups.socket avahi-daemon.service ipp-usb.service
 
 # Warn if systemd-resolved mDNS is active, as it can conflict with Avahi.
@@ -96,7 +89,7 @@ if systemctl is-active --quiet systemd-resolved; then
     if [[ "${RESOLVED_MDNS,,}" =~ yes|active|enabled ]]; then
         printf '%s\n' "${YELLOW}WARNING: systemd-resolved has mDNS enabled, which can conflict with Avahi.${ENDCOLOR}"
         printf '%s\n' "${YELLOW}Network printer and scanner discovery may not work correctly.${ENDCOLOR}"
-        printf '%s\n' "${YELLOW}Consider disabling systemd-resolved's mDNS by setting MulticastDNS=no in /etc/systemd/resolved.conf${ENDCOLOR}"
+        printf '%s\n' "${YELLOW}Consider disabling systemd-resolved's mDNS by setting MulticastDNS=no in /etc/systemd/resolved.conf.d/${ENDCOLOR}"
     fi
 fi
 
@@ -108,9 +101,9 @@ if [[ ! -e "$ORIGINAL_FILE" ]]; then
     exit 1
 fi
 
-BACKUP_FILE="${ORIGINAL_FILE}.arch-easyprint.$(date +%Y%m%d%H%M%S).bak"
+BACKUP_FILE="${ORIGINAL_FILE}.arch-easyprint.bak"
 printf '%s\n' "${GREEN}Creating a backup of $ORIGINAL_FILE at $BACKUP_FILE.${ENDCOLOR}"
-sudo cp -p "$ORIGINAL_FILE" "$BACKUP_FILE"
+sudo cp -a "$ORIGINAL_FILE" "$BACKUP_FILE"
 
 CURRENT_HOSTS_LINE=$(grep -m1 '^hosts:' "$ORIGINAL_FILE" || true)
 
@@ -173,9 +166,9 @@ else
 fi
 
 cat << EOF
-Script finished successfully!
-Please be sure to add your printer through the CUPS web interface at http://localhost:631/
-or using your desktop environment's printer settings.
+Script has finished successfully!
+Please make sure to add your printer through the CUPS at http://localhost:631/
+or by using your desktop environment's printer app.
 NOTE: Do not enable cups-browsed.service because it is not needed for DNS-SD/mDNS printer discovery and it can significantly slow down your boot time.
 If your printer or scanner is not detected, try logging out and logging back in or restarting your computer and trying again.
 EOF
