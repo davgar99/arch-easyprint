@@ -60,8 +60,8 @@ if (( ${#REQUIRED_PACKAGES[@]} == 0 )); then
 fi
 
 printf '%s\n' "${GREEN}Synchronizing packages and installing required printing/scanning support.${ENDCOLOR}"
-# Use pacman Sy to avoid partial updates on Arch Linux.
-sudo pacman -Sy --needed "${REQUIRED_PACKAGES[@]}"
+# Use pacman Syu to avoid partial updates on Arch Linux.
+sudo pacman -Syu --needed "${REQUIRED_PACKAGES[@]}"
 
 printf '%s\n' "${YELLOW}Detecting desktop environment.${ENDCOLOR}"
 DE="${XDG_CURRENT_DESKTOP:-}"
