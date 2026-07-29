@@ -60,8 +60,8 @@ if (( ${#REQUIRED_PACKAGES[@]} == 0 )); then
 fi
 
 printf '%s\n' "${GREEN}Synchronizing packages and installing required printing/scanning support.${ENDCOLOR}"
-# Use pacman Sy to avoid partial updates on Arch Linux.
-sudo pacman -Sy --needed "${REQUIRED_PACKAGES[@]}"
+# Use pacman Syu to avoid partial updates on Arch Linux.
+sudo pacman -Syu --needed "${REQUIRED_PACKAGES[@]}"
 
 printf '%s\n' "${YELLOW}Detecting desktop environment.${ENDCOLOR}"
 DE="${XDG_CURRENT_DESKTOP:-}"
@@ -81,7 +81,7 @@ fi
 
 printf '%s\n' "${GREEN}Enabling services.${ENDCOLOR}"
 # Use socket-based activation for CUPS to avoid slow boot times.
-sudo systemctl enable --now cups.socket avahi-daemon.service ipp-usb.service
+sudo systemctl enable --now cups.socket avahi-daemon.service
 
 # Warn if systemd-resolved mDNS is active, as it can conflict with Avahi.
 if systemctl is-active --quiet systemd-resolved; then
@@ -101,9 +101,12 @@ if [[ ! -e "$ORIGINAL_FILE" ]]; then
     exit 1
 fi
 
-BACKUP_FILE="${ORIGINAL_FILE}.arch-easyprint.bak"
-printf '%s\n' "${GREEN}Creating a backup of $ORIGINAL_FILE at $BACKUP_FILE.${ENDCOLOR}"
-sudo cp -a "$ORIGINAL_FILE" "$BACKUP_FILE"
+if [[ ! -e "$BACKUP_FILE" ]]; then
+    printf '%s\n' "${GREEN}Creating a backup of $ORIGINAL_FILE at $BACKUP_FILE.${ENDCOLOR}"
+    sudo cp -a "$ORIGINAL_FILE" "$BACKUP_FILE"
+else
+    printf '%s\n' "${YELLOW}Backup already exists at $BACKUP_FILE, leaving it in place.${ENDCOLOR}"
+fi
 
 CURRENT_HOSTS_LINE=$(grep -m1 '^hosts:' "$ORIGINAL_FILE" || true)
 
