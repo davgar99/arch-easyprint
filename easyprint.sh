@@ -10,6 +10,7 @@ ENDCOLOR=$'\033[0m'
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 PACKAGE_FILE="$SCRIPT_DIR/packages.txt"
 ORIGINAL_FILE="/etc/nsswitch.conf"
+BACKUP_FILE="/etc/nsswitch.conf.bak"
 
 if ! command -v sudo >/dev/null 2>&1; then
     printf '%s\n' "${RED}ERROR: sudo is required to run this script.${ENDCOLOR}"
@@ -150,20 +151,15 @@ if systemctl is-active --quiet ufw; then
     printf '%s\n' "${GREEN}UFW detected. Opening required ports.${ENDCOLOR}"
     # UDP 5353 - mDNS for network printer and scanner discovery.
     sudo ufw allow 5353/udp
-    # TCP 6566 - saned for network scanner sharing.
-    sudo ufw allow 6566/tcp
     sudo ufw reload
 elif systemctl is-active --quiet firewalld; then
     printf '%s\n' "${GREEN}firewalld detected. Opening required ports.${ENDCOLOR}"
     # UDP 5353 - mDNS for network printer and scanner discovery.
-    sudo firewall-cmd --permanent --add-port=5353/udp
-    # TCP 6566 - saned for network scanner sharing.
-    sudo firewall-cmd --permanent --add-port=6566/tcp
+    sudo firewall-cmd --permanent --add-service=mdns
     sudo firewall-cmd --reload
 elif systemctl is-active --quiet iptables; then
     printf '%s\n' "${YELLOW}iptables detected. Please open the following ports manually:${ENDCOLOR}"
     printf '%s\n' "${YELLOW}  UDP 5353 - mDNS (network printer and scanner discovery)${ENDCOLOR}"
-    printf '%s\n' "${YELLOW}  TCP 6566 - saned (network scanner sharing)${ENDCOLOR}"
 else
     printf '%s\n' "${YELLOW}No active firewall detected. Skipping firewall configuration.${ENDCOLOR}"
 fi
