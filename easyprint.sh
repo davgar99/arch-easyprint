@@ -101,9 +101,12 @@ if [[ ! -e "$ORIGINAL_FILE" ]]; then
     exit 1
 fi
 
-BACKUP_FILE="${ORIGINAL_FILE}.arch-easyprint.bak"
-printf '%s\n' "${GREEN}Creating a backup of $ORIGINAL_FILE at $BACKUP_FILE.${ENDCOLOR}"
-sudo cp -a "$ORIGINAL_FILE" "$BACKUP_FILE"
+if [[ ! -e "$BACKUP_FILE" ]]; then
+    printf '%s\n' "${GREEN}Creating a backup of $ORIGINAL_FILE at $BACKUP_FILE.${ENDCOLOR}"
+    sudo cp -a "$ORIGINAL_FILE" "$BACKUP_FILE"
+else
+    printf '%s\n' "${YELLOW}Backup already exists at $BACKUP_FILE, leaving it in place.${ENDCOLOR}"
+fi
 
 CURRENT_HOSTS_LINE=$(grep -m1 '^hosts:' "$ORIGINAL_FILE" || true)
 
