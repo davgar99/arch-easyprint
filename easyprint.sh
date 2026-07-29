@@ -12,11 +12,6 @@ PACKAGE_FILE="$SCRIPT_DIR/packages.txt"
 ORIGINAL_FILE="/etc/nsswitch.conf"
 BACKUP_FILE="/etc/nsswitch.conf.bak"
 
-if ! command -v sudo >/dev/null 2>&1; then
-    printf '%s\n' "${RED}ERROR: sudo is required to run this script.${ENDCOLOR}"
-    exit 1
-fi
-
 cat << EOF
 Welcome to Arch-EasyPrint!
 This script will install the required packages and dependencies to have your printer and scanner up and running.
@@ -26,11 +21,11 @@ while true; do
     read -r -p "Do you want to continue? (Y/n): " response
     case "$response" in
         [Yy])
-            printf '%s\n' "${YELLOW}You responded with Y. Continuing.${ENDCOLOR}"
+            printf '%s\n' "${YELLOW}Continuing with script.${ENDCOLOR}"
             break
             ;;
         [Nn])
-            printf '%s\n' "${YELLOW}You responded with N. Exiting.${ENDCOLOR}"
+            printf '%s\n' "${YELLOW}Exiting script.${ENDCOLOR}"
             exit 0
             ;;
         *)
@@ -44,14 +39,20 @@ if ! command -v pacman >/dev/null 2>&1; then
     exit 1
 fi
 
-if [[ ! -f "$PACKAGE_FILE" ]]; then
-    printf '%s\n' "${RED}ERROR: packages.txt was not found at $PACKAGE_FILE.${ENDCOLOR}"
-    printf '%s\n' "${RED}Clone the full repository or run this script with a complete copy of the project.${ENDCOLOR}"
+# Check for sudo privileges
+if ! command -v sudo >/dev/null 2>&1; then
+    printf '%s\n' "${RED}ERROR: sudo is required to run this script.${ENDCOLOR}"
     exit 1
 fi
 
 # Validate sudo privileges early so failures happen before package changes begin.
 sudo true
+
+if [[ ! -f "$PACKAGE_FILE" ]]; then
+    printf '%s\n' "${RED}ERROR: packages.txt was not found at $PACKAGE_FILE.${ENDCOLOR}"
+    printf '%s\n' "${RED}Clone the full repository or run this script with a complete copy of the project.${ENDCOLOR}"
+    exit 1
+fi
 
 mapfile -t REQUIRED_PACKAGES < <(grep -Ev '^[[:space:]]*(#|$)' "$PACKAGE_FILE")
 
@@ -86,8 +87,8 @@ sudo systemctl enable --now cups.socket avahi-daemon.service
 
 # Warn if systemd-resolved mDNS is active, as it can conflict with Avahi.
 if systemctl is-active --quiet systemd-resolved; then
-    RESOLVED_MDNS=$(resolvectl status 2>/dev/null | grep -im1 "MulticastDNS" || true)
-    if [[ "${RESOLVED_MDNS,,}" =~ yes|active|enabled ]]; then
+    RESOLVED_MDNS_LINE=$(resolvectl status 2>/dev/null | grep -m1 'Protocols:' || true)
+    if [[ "$RESOLVED_MDNS_LINE" == *+mDNS* ]]; then
         printf '%s\n' "${YELLOW}WARNING: systemd-resolved has mDNS enabled, which can conflict with Avahi.${ENDCOLOR}"
         printf '%s\n' "${YELLOW}Network printer and scanner discovery may not work correctly.${ENDCOLOR}"
         printf '%s\n' "${YELLOW}Consider disabling systemd-resolved's mDNS by setting MulticastDNS=no in /etc/systemd/resolved.conf.d/${ENDCOLOR}"
@@ -106,7 +107,7 @@ if [[ ! -e "$BACKUP_FILE" ]]; then
     printf '%s\n' "${GREEN}Creating a backup of $ORIGINAL_FILE at $BACKUP_FILE.${ENDCOLOR}"
     sudo cp -a "$ORIGINAL_FILE" "$BACKUP_FILE"
 else
-    printf '%s\n' "${YELLOW}Backup already exists at $BACKUP_FILE, leaving it in place.${ENDCOLOR}"
+    printf '%s\n' "${YELLOW}Backup already exists at $BACKUP_FILE, leaving it alone.${ENDCOLOR}"
 fi
 
 CURRENT_HOSTS_LINE=$(grep -m1 '^hosts:' "$ORIGINAL_FILE" || true)
@@ -168,6 +169,6 @@ cat << EOF
 Script has finished successfully!
 Please make sure to add your printer through the CUPS at http://localhost:631/
 or by using your desktop environment's printer app.
-NOTE: Do not enable cups-browsed.service because it is not needed for DNS-SD/mDNS printer discovery and it can significantly slow down your boot time.
+NOTE: Do not enable cups-browsed.service because it's not needed for DNS-SD/mDNS printer discovery and it can significantly slow down your boot time.
 If your printer or scanner is not detected, try logging out and logging back in or restarting your computer and trying again.
 EOF

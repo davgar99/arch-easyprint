@@ -10,8 +10,8 @@ The goal is to reduce the amount of manual setup needed to get printers and scan
 - Runs a normal `pacman -Syu --needed` transaction instead of only refreshing package databases
 - Detects GNOME or KDE Plasma and installs the appropriate GUI tools
 - Enables `cups.socket` for socket-based CUPS activation
-- Enables Avahi and IPP-USB for automatic network and USB device discovery
-- Creates a timestamped backup of `/etc/nsswitch.conf` before changing it
+- Enables Avahi for automatic network device discovery
+- Creates a backup of `/etc/nsswitch.conf` before changing it
 - Adds mDNS hostname resolution to the existing `hosts:` line without replacing the whole line unnecessarily
 - Warns if `systemd-resolved` mDNS appears to be enabled
 - Detects UFW or firewalld and opens the required discovery/scanning ports
@@ -43,7 +43,7 @@ After the script finishes, add your printer through the CUPS web interface at `h
 ## Notes
 
 - Do **not** enable `cups-browsed.service`. It is not needed for DNS-SD/mDNS printer discovery and can significantly slow down boot time.
-- The script creates a timestamped backup of `/etc/nsswitch.conf` before editing it.
+- The script creates a backup of `/etc/nsswitch.conf` before editing it.
 - If your printer or scanner is not detected after running the script, try logging out and back in or restarting your computer.
 - If you use `systemd-resolved` with mDNS enabled, it may conflict with Avahi. Disable it by setting `MulticastDNS=no` in `/etc/systemd/resolved.conf`.
 
