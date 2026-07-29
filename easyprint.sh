@@ -81,7 +81,7 @@ fi
 
 printf '%s\n' "${GREEN}Enabling services.${ENDCOLOR}"
 # Use socket-based activation for CUPS to avoid slow boot times.
-sudo systemctl enable --now cups.socket avahi-daemon.service ipp-usb.service
+sudo systemctl enable --now cups.socket avahi-daemon.service
 
 # Warn if systemd-resolved mDNS is active, as it can conflict with Avahi.
 if systemctl is-active --quiet systemd-resolved; then
