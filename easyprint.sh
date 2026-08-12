@@ -20,7 +20,7 @@ EOF
 while true; do
     read -r -p "Do you want to continue? (Y/n): " response
     case "$response" in
-        [Yy])
+        [Yy]|"")
             printf '%s\n' "${YELLOW}Continuing with script.${ENDCOLOR}"
             break
             ;;
@@ -126,6 +126,7 @@ fi
 if [[ "$NEW_HOSTS_LINE" != "$CURRENT_HOSTS_LINE" ]]; then
     printf '%s\n' "${GREEN}Updating the hosts line in $ORIGINAL_FILE.${ENDCOLOR}"
     TEMP_FILE=$(mktemp)
+    trap 'rm -f "$TEMP_FILE"' EXIT
     awk -v new_hosts_line="$NEW_HOSTS_LINE" '
         BEGIN { replaced = 0 }
         /^hosts:/ && replaced == 0 { print new_hosts_line; replaced = 1; next }
@@ -134,6 +135,7 @@ if [[ "$NEW_HOSTS_LINE" != "$CURRENT_HOSTS_LINE" ]]; then
     ' "$ORIGINAL_FILE" > "$TEMP_FILE"
     sudo cp "$TEMP_FILE" "$ORIGINAL_FILE"
     rm -f "$TEMP_FILE"
+    trap - EXIT
 fi
 
 # Verify the change.
